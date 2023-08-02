@@ -1,5 +1,6 @@
 local Object = require 'libs.classic'
 
+---@class Grid: Object
 local Grid = Object:extend()
 
 local empty = { skin = "", colour = "" }
@@ -477,8 +478,9 @@ function Grid:drawInvisible(opacity_function, garbage_opacity_function, lock_fla
 	for y = 5, self.height do
 		for x = 1, self.width do
 			if self.grid[y][x] ~= empty then
+				local opacity = 0
 				if self.grid[y][x].colour == "X" then
-					opacity = 0
+					-- pass
 				elseif garbage_opacity_function and self.grid[y][x].colour == "A" then
 					opacity = garbage_opacity_function(self.grid_age[y][x])
 				else

@@ -101,10 +101,10 @@ function Race40Game:onLineClear(cleared_row_count)
 	end
 end
 
-function Race40Game:drawGrid(ruleset)
+function Race40Game:drawGrid()
 	self.grid:draw()
 	if self.piece ~= nil then
-		self:drawGhostPiece(ruleset)
+		self:drawGhostPiece()
 	end
 end
 

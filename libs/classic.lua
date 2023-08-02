@@ -7,7 +7,10 @@
 -- the terms of the MIT license. See LICENSE for details.
 --
 
+---@diagnostic disable: redundant-parameter
 
+---@class Object
+---@field super Object
 local Object = {}
 Object.__index = Object
 

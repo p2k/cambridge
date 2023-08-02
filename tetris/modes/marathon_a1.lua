@@ -6,13 +6,12 @@ local Grid = require 'tetris.components.grid'
 
 local History4RollsRandomizer = require 'tetris.randomizers.history_4rolls'
 
+---@class MarathonA1Game: GameMode
 local MarathonA1Game = GameMode:extend()
 
 MarathonA1Game.name = "Marathon A1"
 MarathonA1Game.hash = "MarathonA1"
 MarathonA1Game.tagline = "Can you score enough points to reach the title of Grand Master?"
-
-
 
 function MarathonA1Game:new()
 	MarathonA1Game.super:new()
@@ -61,8 +60,8 @@ function MarathonA1Game:getLockDelay()
 end
 
 local function getRankForScore(score)
-		if score <	400 then return {rank = "9", next = 400}
-	elseif score <	800 then return {rank = "8", next = 800}
+		if score <    400 then return {rank = "9", next = 400}
+	elseif score <    800 then return {rank = "8", next = 800}
 	elseif score <   1400 then return {rank = "7", next = 1400}
 	elseif score <   2000 then return {rank = "6", next = 2000}
 	elseif score <   3500 then return {rank = "5", next = 3500}
@@ -184,7 +183,7 @@ end
 function MarathonA1Game:drawGrid()
 	self.grid:draw()
 	if self.piece ~= nil and self.level < 100 then
-		self:drawGhostPiece(ruleset)
+		self:drawGhostPiece()
 	end
 end
 

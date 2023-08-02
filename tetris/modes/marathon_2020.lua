@@ -329,7 +329,7 @@ function Marathon2020Game:checkClear(level)
 end
 
 function Marathon2020Game:updateSectionTimes(old_level, new_level)
-	function sectionCool(section)
+	local function sectionCool(section)
 		self.section_cool_count = self.section_cool_count + 1
 		if section <= 10 then
 			self.delay_level = math.min(20, self.delay_level + 1)
@@ -342,13 +342,13 @@ function Marathon2020Game:updateSectionTimes(old_level, new_level)
 
 	if old_level % 100 < 70 and new_level >= math.floor(old_level / 100) * 100 + 70 then
 		-- record section 70 time
-		section_70_time = self.frames - self.section_start_time
+		local section_70_time = self.frames - self.section_start_time
 		table.insert(self.secondary_section_times, section_70_time)
 	end
 
 	if self:sectionPassed(old_level, new_level) then
 		-- record new section
-		section_time = self.frames - self.section_start_time
+		local section_time = self.frames - self.section_start_time
 		table.insert(self.section_times, section_time)
 		self.section_start_time = self.frames
 
@@ -420,7 +420,7 @@ function Marathon2020Game:drawGrid()
 	else
 		self.grid:draw()
 		if self.piece ~= nil and self.level < 100 then
-			self:drawGhostPiece(ruleset)
+			self:drawGhostPiece()
 		end
 	end
 end

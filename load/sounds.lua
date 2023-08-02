@@ -1,4 +1,4 @@
-sound_paths = {
+SOUND_PATHS = {
 	blocks = {
 		I = "res/se/piece_i.wav",
 		J = "res/se/piece_j.wav",
@@ -29,26 +29,30 @@ sound_paths = {
 	go = "res/se/go.wav",
 	irs = "res/se/irs.wav",
 	ihs = "res/se/ihs.wav",
+	cool = "res/se/cool.wav",
+	bell = "res/se/bell.wav",
+	segment = "res/se/segment.wav",
+	clear = "res/se/clear.wav",
 	-- a secret sound!
 	welcome = "res/se/welcomeToCambridge.wav",
 }
 
 sounds = {}
 -- Replace each sound effect string with its love audiosource counterpart, but only if it exists. This lets the game handle missing SFX.
-for k,v in pairs(sound_paths) do
-	if(type(v) == "table") then
+for k,v in pairs(SOUND_PATHS) do
+	if type(v) == "table" then
 		-- list of subsounds
 		for k2,v2 in pairs(v) do
-			if(love.filesystem.getInfo(sound_paths[k][k2])) then
+			if(love.filesystem.getInfo(v2)) then
 				-- this file exists
 				sounds[k] = sounds[k] or {}
-				sounds[k][k2] = love.audio.newSource(sound_paths[k][k2], "static")
+				sounds[k][k2] = love.audio.newSource(v2, "static")
 			end
 		end
 	else
-		if(love.filesystem.getInfo(sound_paths[k])) then
+		if(love.filesystem.getInfo(v)) then
 			-- this file exists
-			sounds[k] = love.audio.newSource(sound_paths[k], "static")
+			sounds[k] = love.audio.newSource(v, "static")
 		end
 	end
 end

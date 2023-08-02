@@ -115,7 +115,7 @@ function SurvivalAXGame:onPieceEnter()
 	self.section_clear = false
 end
 
-function SurvivalAXGame:drawGrid(ruleset)
+function SurvivalAXGame:drawGrid()
 	self.grid:draw()
 end
 

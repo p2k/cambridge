@@ -5,6 +5,7 @@ local Piece = require 'tetris.components.piece'
 
 local History6RollsRandomizer = require 'tetris.randomizers.history_6rolls_35bag'
 
+---@class MarathonA3Game: GameMode
 local MarathonA3Game = GameMode:extend()
 
 MarathonA3Game.name = "Marathon A3"
@@ -16,7 +17,8 @@ MarathonA3Game.tagline = "The game gets faster way more quickly! Can you get all
 
 function MarathonA3Game:new()
 	MarathonA3Game.super:new()
-	
+
+	self.levelstop = false
 	self.speed_level = 0
 	self.roll_frames = 0
 	self.combo = 1
@@ -36,7 +38,7 @@ function MarathonA3Game:new()
 	
 	self.randomizer = History6RollsRandomizer()
 
-self.SGnames = {
+	self.SGnames = {
 		"9", "8", "7", "6", "5", "4", "3", "2", "1",
 		"S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9",
 		"GM"
@@ -152,11 +154,18 @@ function MarathonA3Game:advanceOneFrame()
 end
 
 function MarathonA3Game:onPieceEnter()
-	if (self.level % 100 ~= 99) and self.level ~= 998 and self.frames ~= 0 then
-		self:updateSectionTimes(self.level, self.level + 1)
+	if self.frames == 0 then
+		switchBGMLoop("lv1")
+		return
+	end
+	if self.level % 100 ~= 99 and self.level ~= 998 then
+		self:updateSectionTimes(1)
 		self.level = self.level + 1
 		self.speed_level = self.speed_level + 1
-		self.torikan_passed = self.level >= 500 and true or false
+		self.torikan_passed = self.level >= 500
+	elseif not self.levelstop then
+		self.levelstop = true
+		playSE("bell")
 	end
 end
 
@@ -164,39 +173,48 @@ local cleared_row_levels = {1, 2, 4, 6}
 
 function MarathonA3Game:onLineClear(cleared_row_count)
 	local advanced_levels = cleared_row_levels[cleared_row_count]
-	self:updateSectionTimes(self.level, self.level + advanced_levels)
+	self:updateSectionTimes(advanced_levels)
 	if not self.clear then
 		self.level = math.min(self.level + advanced_levels, 999)
 		self.speed_level = self.speed_level + advanced_levels
+		self.levelstop = false
 	end
 	if self.level == 999 and not self.clear then
 		self.clear = true
+		self.levelstop = true
 		self.grid:clear()
 		self.roll_frames = -150
+		playSE("clear")
+		switchBGM(nil)
 	end
 	if not self.torikan_passed and self.level >= 500 and self.frames >= 25200 then
-	self.level = 500
-	self.game_over = true
+		self.level = 500
+		self.game_over = true
+		switchBGM(nil)
 	end
 end
 
 local cool_cutoffs = {
 	frameTime(0,52), frameTime(0,52), frameTime(0,49), frameTime(0,45), frameTime(0,45),
-	frameTime(0,42), frameTime(0,42), frameTime(0,38), frameTime(0,38), 
+	frameTime(0,42), frameTime(0,42), frameTime(0,38), frameTime(0,38),
 }
 
 local regret_cutoffs = {
-	frameTime(0,90), frameTime(0,75), frameTime(0,75), frameTime(0,68), frameTime(0,60),
-	frameTime(0,60), frameTime(0,50), frameTime(0,50), frameTime(0,50), frameTime(0,50),
+	frameTime(1,30), frameTime(1,15), frameTime(1,15), frameTime(1, 8), frameTime(1, 0),
+	frameTime(1, 0), frameTime(0,50), frameTime(0,50), frameTime(0,50), frameTime(0,50),
 }
 
-function MarathonA3Game:updateSectionTimes(old_level, new_level)
+---@param advanced_levels integer
+function MarathonA3Game:updateSectionTimes(advanced_levels)
 	if self.clear then return end
-	local section = math.floor(old_level / 100) + 1
-	if math.floor(old_level / 100) < math.floor(new_level / 100) or
-	new_level >= 999 then
+	local section = math.floor(self.level / 100) + 1
+	local new_level = math.min(self.level + advanced_levels, 999)
+	local new_section = new_level == 999 and 11 or math.floor(new_level / 100) + 1
+	local new_speed_level = self.speed_level + advanced_levels
+	local new_speed_level_section = math.floor(new_speed_level / 100) + 1
+	if new_section > section then
 		-- record new section
-		section_time = self.frames - self.section_start_time
+		local section_time = self.frames - self.section_start_time
 		table.insert(self.section_times, section_time)
 		if new_level < 999 then self.section_start_time = self.frames end
 
@@ -222,10 +240,18 @@ function MarathonA3Game:updateSectionTimes(old_level, new_level)
 			self.section_cool_grade = self.section_cool_grade + 1
 		end
 
+		if new_level < 999 then playSE("segment") end
+
+		if new_speed_level_section == 6 or new_speed_level_section == 5 and self.section_cool then
+			switchBGMLoop("lv2")
+		elseif new_speed_level_section == 8 or new_speed_level_section == 7 and self.section_cool then
+			switchBGMLoop("lv3")
+		end
+
 		self.section_cool = false
-	elseif old_level % 100 < 70 and new_level % 100 >= 70 then
+	elseif self.level % 100 < 70 and new_level % 100 >= 70 then
 		-- record section 70 time
-		section_70_time = self.frames - self.section_start_time
+		local section_70_time = self.frames - self.section_start_time
 		table.insert(self.secondary_section_times, section_70_time)
 
 		if section <= 9 and self.secondary_section_times[section] < cool_cutoffs[section] and
@@ -233,9 +259,15 @@ function MarathonA3Game:updateSectionTimes(old_level, new_level)
 			self.section_cool = true
 			self.coolregret_message = "COOL!!"
 			self.coolregret_timer = 300
+			playSE("cool")
 			table.insert(self.section_cools, 1)
 		else
 			table.insert(self.section_cools, 0)
+		end
+
+		if new_speed_level_section == 5 or new_speed_level_section == 7 or
+		  (new_speed_level_section == 4 or new_speed_level_section == 6) and self.section_cool then
+			fadeoutBGM(5)
 		end
 	end
 end
@@ -398,17 +430,21 @@ function MarathonA3Game:drawGrid()
 	else
 		self.grid:draw()
 		if self.piece ~= nil and self.level < 100 then
-			self:drawGhostPiece(ruleset)
+			self:drawGhostPiece()
 		end
 	end
 end
 
+---@param age number
+---@return number
 MarathonA3Game.rollOpacityFunction = function(age)
 	if age < 240 then return 1
 	elseif age > 300 then return 0
 	else return 1 - (age - 240) / 60 end
 end
 
+---@param age number
+---@return number
 MarathonA3Game.mRollOpacityFunction = function(age)
 	if age > 4 then return 0
 	else return 1 - age / 4 end
@@ -445,7 +481,7 @@ function MarathonA3Game:drawScoringInfo()
 	end
 
 	-- draw section time data
-	current_section = self.level >= 999 and 11 or math.floor(self.level / 100) + 1
+	local current_section = self.level >= 999 and 11 or math.floor(self.level / 100) + 1
 	self:drawSectionTimesWithSecondary(current_section, 10)
 	--[[
 
@@ -474,10 +510,10 @@ function MarathonA3Game:drawScoringInfo()
 	if not self.clear then love.graphics.printf(formatTime(self.frames - self.section_start_time), current_x, 40 + 20 * current_section, 90, "left") end
 	]]--
 
-	if(self.coolregret_timer > 0) then
-				love.graphics.printf(self.coolregret_message, 64, 400, 160, "center")
-				self.coolregret_timer = self.coolregret_timer - 1
-		end
+	if self.coolregret_timer > 0 then
+			love.graphics.printf(self.coolregret_message, 64, 400, 160, "center")
+			self.coolregret_timer = self.coolregret_timer - 1
+	end
 
 	love.graphics.setFont(font_3x5_3)
 	love.graphics.printf(self.score, 240, 220, 90, "left")
@@ -485,8 +521,8 @@ function MarathonA3Game:drawScoringInfo()
 	elseif self.level >= 999 then love.graphics.setColor(0, 1, 0, 1) end
 	love.graphics.printf(self:getLetterGrade(), 240, 140, 90, "left")
 	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.printf(self.level, 240, 340, 40, "right")
-	love.graphics.printf(self:getSectionEndLevel(), 240, 370, 40, "right")
+	love.graphics.printf(tostring(self.level), 240, 340, 40, "right")
+	love.graphics.printf(tostring(self:getSectionEndLevel()), 240, 370, 40, "right")
 	if sg >= 5 then
 		love.graphics.printf(self.SGnames[sg], 240, 450, 180, "left")
 	end
@@ -504,8 +540,7 @@ function MarathonA3Game:getHighscoreData()
 end
 
 function MarathonA3Game:getSectionEndLevel()
-	if self.level >= 900 then return 999
-	else return math.floor(self.level / 100 + 1) * 100 end
+	return self.level >= 900 and 999 or math.floor(self.level / 100 + 1) * 100
 end
 
 function MarathonA3Game:getBackground()

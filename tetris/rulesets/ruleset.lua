@@ -77,6 +77,11 @@ function Ruleset:rotatePiece(inputs, piece, grid, prev_inputs, initial)
 	end
 end
 
+--- Attempts to rotate a piece, uses wall kicks if needed
+---@param new_inputs table<string, boolean>
+---@param piece Piece
+---@param grid Grid
+---@param initial any
 function Ruleset:attemptRotate(new_inputs, piece, grid, initial)
 	local rot_dir = 0
 	
@@ -273,8 +278,8 @@ end
 
 function Ruleset:canPieceMove(piece, grid) return true end
 function Ruleset:canPieceRotate(piece, grid) return true end
-function Ruleset:onPieceMove(piece) end
-function Ruleset:onPieceRotate(piece) end
-function Ruleset:onPieceDrop(piece) end
+function Ruleset:onPieceMove(piece, grid) end
+function Ruleset:onPieceRotate(piece, grid) end
+function Ruleset:onPieceDrop(piece, grid) end
 
 return Ruleset

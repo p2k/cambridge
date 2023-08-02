@@ -9,6 +9,10 @@ local Randomizer = require 'tetris.randomizers.randomizer'
 local BagRandomizer = require 'tetris.randomizers.bag'
 local binser = require 'libs.binser'
 
+---@class GameMode: Object
+---@field grid Grid
+---@field randomizer Randomizer
+---@field used_randomizer Randomizer
 local GameMode = Object:extend()
 
 GameMode.name = ""
@@ -378,7 +382,7 @@ function GameMode:onAttemptPieceRotate(piece, grid) end
 function GameMode:onPieceMove(piece, grid, dx) end
 function GameMode:onPieceRotate(piece, grid, drot) end
 function GameMode:onPieceDrop(piece, grid, dy) end
-function GameMode:onPieceLock(piece, cleared_row_count) 
+function GameMode:onPieceLock(piece, cleared_row_count)
 	playSE("lock")
 end
 
@@ -816,7 +820,7 @@ function GameMode:drawPiece()
 	end
 end
 
-function GameMode:drawGhostPiece(ruleset)
+function GameMode:drawGhostPiece()
 	if self.piece == nil or not self.grid:canPlacePiece(self.piece) then
 		return
 	end

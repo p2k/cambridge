@@ -1,5 +1,6 @@
 local Object = require 'libs.classic'
 
+---@class Piece: Object
 local Piece = Object:extend()
 
 function Piece:new(shape, rotation, position, block_offsets, gravity, lock_delay, skin, colour, big)
@@ -26,6 +27,9 @@ function Piece:withOffset(offset)
 	)
 end
 
+--- Returns a new Piece object with the given rotation
+---@param rot number
+---@return Piece
 function Piece:withRelativeRotation(rot)
 	local new_rot = self.rotation + rot
 	while new_rot < 0 do new_rot = new_rot + 4 end
